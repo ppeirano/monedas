@@ -55,7 +55,7 @@ selected_currencies = [
 dxy = fetch_data_with_fallback("DX-Y.NYB", start_date, end_date, interval=timeframe)
 
 if 'Adj Close' in dxy.columns:
-    dxy_adj_close = dxy['Adj Close']
+    dxy_adj_close = dxy['Close']
 else:
     st.warning("No 'Adj Close' data available for DXY.")
     dxy_adj_close = None
@@ -68,13 +68,13 @@ for currency in selected_currencies:
             adr_data = fetch_data_with_fallback("GGAL", start_date, end_date, interval=timeframe)
             local_data = fetch_data_with_fallback("GGAL.BA", start_date, end_date, interval=timeframe)
             if not adr_data.empty and not local_data.empty:
-                currency_data[currency] = adr_data['Adj Close'] / local_data['Adj Close']
+                currency_data[currency] = adr_data['Close'] / local_data['Close']
             else:
                 st.warning(f"No data available for {currency}.")
         else:
             data = fetch_data_with_fallback(currency, start_date, end_date, interval=timeframe)
             if 'Adj Close' in data.columns:
-                currency_data[currency] = data['Adj Close']
+                currency_data[currency] = data['Close']
             else:
                 st.warning(f"No 'Adj Close' data available for {currency}.")
     except Exception as e:
