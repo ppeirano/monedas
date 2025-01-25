@@ -4,10 +4,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-# Title and description
-#st.title("Currency Comparison with DXY Index")
-#st.write("Analyze and compare the DXY index with various global and emerging market currencies.")
-
 # Default currencies to display
 default_currencies = ["USDBRL=X", "Dolar Financiero (GGAL)", "USDCNY=X", "EUR=X", "USDJPY=X"]
 
@@ -37,47 +33,64 @@ selected_currencies = [
 ]
 
 # Load DXY Index data
-dxy = yf.download("DX-Y.NYB", start=start_date, end=end_date, interval=timeframe)
+try:
+    dxy = yf.download("DX-Y.NYB", start=start_date, end=end_date, interval=timeframe)
+    if 'Adj Close' in dxy.columns:
+        dxy_close = dxy['Adj Close']
+    elif 'Close' in dxy.columns:
+        dxy_close = dxy['Close']
+    else:
+        st.warning("No 'Adj Close' or 'Close' data available for DXY.")
+        dxy_close = None
+except Exception as e:
+    st.error(f"Error loading DXY data: {e}")
+    dxy_close = None
 
 # Download data for selected currencies and calculate Dolar Financiero
 currency_data = {}
 for currency in selected_currencies:
-    if currency == "Dolar Financiero (GGAL)":
-        adr_data = yf.download("GGAL", start=start_date, end=end_date, interval=timeframe)
-        local_data = yf.download("GGAL.BA", start=start_date, end=end_date, interval=timeframe)
-        currency_data[currency] = adr_data['Close'] / local_data['Close']
-    else:
-        data = yf.download(currency, start=start_date, end=end_date, interval=timeframe)
-        currency_data[currency] = data['Close']
+    try:
+        if currency == "Dolar Financiero (GGAL)":
+            adr_data = yf.download("GGAL", start=start_date, end=end_date, interval=timeframe)
+            local_data = yf.download("GGAL.BA", start=start_date, end=end_date, interval=timeframe)
+            currency_data[currency] = adr_data['Close'] / local_data['Close']
+        else:
+            data = yf.download(currency, start=start_date, end=end_date, interval=timeframe)
+            currency_data[currency] = data['Close']
+    except Exception as e:
+        st.error(f"Error loading data for {currency}: {e}")
+        currency_data[currency] = None
 
 # Plot the data in a grid layout using Plotly
 st.write("### DXY Index and Selected Currencies")
 figs = []
 
-# Create a figure for DXY Index
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=dxy.index, y=dxy['Close'], mode='lines', name="DXY", line=dict(color='blue')))
-fig.update_layout(
-    title="DXY Index",
-    xaxis_title="Date",
-    yaxis_title="Value",
-    template="plotly_white"
-)
-figs.append(fig)
-
-# Create figures for each selected currency
-for currency in selected_currencies:
+# Create a figure for DXY Index if data is available
+if dxy_close is not None:
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=currency_data[currency].index, y=currency_data[currency], mode='lines', name=currency))
+    fig.add_trace(go.Scatter(x=dxy.index, y=dxy_close, mode='lines', name="DXY", line=dict(color='blue')))
     fig.update_layout(
-        title=currency,
+        title="DXY Index",
         xaxis_title="Date",
         yaxis_title="Value",
         template="plotly_white"
     )
     figs.append(fig)
 
-# Display figures in a grid layout (2 columns, 3 rows)
+# Create figures for each selected currency
+for currency in selected_currencies:
+    if currency_data[currency] is not None:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=currency_data[currency].index, y=currency_data[currency], mode='lines', name=currency))
+        fig.update_layout(
+            title=currency,
+            xaxis_title="Date",
+            yaxis_title="Value",
+            template="plotly_white"
+        )
+        figs.append(fig)
+
+# Display figures in a grid layout (2 columns)
 cols = 2
 rows = (len(figs) + 1) // cols
 for i in range(rows):
@@ -92,9 +105,11 @@ for i in range(rows):
 st.write("### Raw Data")
 all_data = pd.DataFrame()
 
-all_data['DXY'] = dxy['Adj Close']
+if dxy_close is not None:
+    all_data['DXY'] = dxy_close
 for currency in selected_currencies:
-    all_data[currency] = currency_data[currency]
+    if currency_data[currency] is not None:
+        all_data[currency] = currency_data[currency]
 
 all_data = all_data[::-1]  # Reverse the order of the table
 st.dataframe(all_data)
