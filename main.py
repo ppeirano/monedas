@@ -45,10 +45,10 @@ for currency in selected_currencies:
     if currency == "Dolar Financiero (GGAL)":
         adr_data = yf.download("GGAL", start=start_date, end=end_date, interval=timeframe)
         local_data = yf.download("GGAL.BA", start=start_date, end=end_date, interval=timeframe)
-        currency_data[currency] = adr_data['Adj Close'] / local_data['Adj Close']
+        currency_data[currency] = adr_data['Close'] / local_data['Close']
     else:
         data = yf.download(currency, start=start_date, end=end_date, interval=timeframe)
-        currency_data[currency] = data['Adj Close']
+        currency_data[currency] = data['Close']
 
 # Plot the data in a grid layout using Plotly
 st.write("### DXY Index and Selected Currencies")
@@ -56,7 +56,7 @@ figs = []
 
 # Create a figure for DXY Index
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=dxy.index, y=dxy['Adj Close'], mode='lines', name="DXY", line=dict(color='blue')))
+fig.add_trace(go.Scatter(x=dxy.index, y=dxy['Close'], mode='lines', name="DXY", line=dict(color='blue')))
 fig.update_layout(
     title="DXY Index",
     xaxis_title="Date",
