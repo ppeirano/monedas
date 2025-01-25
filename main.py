@@ -1,12 +1,3 @@
-import streamlit as st
-import yfinance as yf
-import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
-
-# Title and description
-#st.title("Currency Comparison with DXY Index")
-#st.write("Analyze and compare thimport streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
