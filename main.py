@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 #st.write("Analyze and compare the DXY index with various global and emerging market currencies.")
 
 # Default currencies to display
-default_currencies = ["USDBRL=X", "Dolar Financiero (GGAL)", "USDCNY=X", "EUR=X", "USDJPY=X"]
+default_currencies = ["USDBRL=X", "EUR=X", "USDCNY=X", "EUR=X", "USDJPY=X"]
 
 # Sidebar controls
 st.sidebar.header("Settings")
