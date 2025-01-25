@@ -25,7 +25,7 @@ def fetch_data_with_fallback(symbol, start_date, end_date, interval):
     return pd.DataFrame()  # Devuelve un DataFrame vacío si no encuentra datos
 
 # Sidebar settings
-default_currencies = ["USDBRL=X", "Dolar Financiero (GGAL)", "USDCNY=X", "EUR=X", "USDJPY=X"]
+default_currencies = ["USDBRL=X", "USDARS=X", "USDCNY=X", "EUR=X", "USDJPY=X"]
 st.sidebar.header("Settings")
 
 # Rango de fechas
