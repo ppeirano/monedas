@@ -6,6 +6,14 @@ from datetime import datetime, timedelta
 
 # Title and description
 #st.title("Currency Comparison with DXY Index")
+#st.write("Analyze and compare thimport streamlit as st
+import yfinance as yf
+import pandas as pd
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
+
+# Title and description
+#st.title("Currency Comparison with DXY Index")
 #st.write("Analyze and compare the DXY index with various global and emerging market currencies.")
 
 # Default currencies to display
@@ -27,8 +35,8 @@ timeframe = st.sidebar.selectbox("Select Timeframe", ["1d", "1wk", "1mo"], index
 # Dropdown menus for currencies
 st.sidebar.header("Select Currencies")
 currencies = [
-    "USDBRL=X", "Dolar Financiero (GGAL)", "USDCNY=X", "EURUSD=X", "USDJPY=X", "GBPUSD=X", "AUDUSD=X", "USDZAR=X",
-    "USDINR=X", "USDMXN=X", "USDRUB=X", "EUR=X", "USDARS=X"
+    "USDBRL=X", "USDARS=X", "USDCNY=X", "EURUSD=X", "USDJPY=X", "GBPUSD=X", "AUDUSD=X", "USDZAR=X",
+    "USDINR=X", "USDMXN=X", "USDRUB=X", "Dolar Financiero (GGAL)", "EUR=X"
 ]
 
 selected_currencies = [
@@ -45,37 +53,48 @@ for currency in selected_currencies:
     if currency == "Dolar Financiero (GGAL)":
         adr_data = yf.download("GGAL", start=start_date, end=end_date, interval=timeframe)
         local_data = yf.download("GGAL.BA", start=start_date, end=end_date, interval=timeframe)
-        currency_data[currency] = local_data['Adj Close'] / adr_data['Adj Close'] * 10
+        currency_data[currency] = adr_data['Adj Close'] / local_data['Adj Close']
     else:
         data = yf.download(currency, start=start_date, end=end_date, interval=timeframe)
         currency_data[currency] = data['Adj Close']
 
-# Plot the data
+# Plot the data in a grid layout using Plotly
 st.write("### DXY Index and Selected Currencies")
-num_plots = len(selected_currencies) + 1
-rows = (num_plots + 1) // 2  # Calculate rows needed for a grid
-fig, axs = plt.subplots(rows, 2, figsize=(12, rows * 4))
+figs = []
 
-# Flatten axes for easy iteration
-axs = axs.flatten()
+# Create a figure for DXY Index
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=dxy.index, y=dxy['Adj Close'], mode='lines', name="DXY", line=dict(color='blue')))
+fig.update_layout(
+    title="DXY Index",
+    xaxis_title="Date",
+    yaxis_title="Value",
+    template="plotly_white"
+)
+figs.append(fig)
 
-# Plot DXY Index
-axs[0].plot(dxy.index, dxy['Adj Close'], label="DXY", color="blue")
-axs[0].set_title("DXY Index")
-axs[0].legend()
+# Create figures for each selected currency
+for currency in selected_currencies:
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=currency_data[currency].index, y=currency_data[currency], mode='lines', name=currency))
+    fig.update_layout(
+        title=currency,
+        xaxis_title="Date",
+        yaxis_title="Value",
+        template="plotly_white"
+    )
+    figs.append(fig)
 
-# Plot selected currencies
-for i, currency in enumerate(selected_currencies):
-    axs[i+1].plot(currency_data[currency].index, currency_data[currency], label=currency, color="green")
-    axs[i+1].set_title(currency)
-    axs[i+1].legend()
-
-# Remove unused subplots if any
-for i in range(num_plots, len(axs)):
-    fig.delaxes(axs[i])
-
-fig.tight_layout()
-st.pyplot(fig)
+# Display figures in a grid layout (2 columns, 3 rows)
+cols = 2
+rows = (len(figs) + 1) // cols
+for i in range(rows):
+    cols_to_plot = figs[i * cols:(i + 1) * cols]
+    col1, col2 = st.columns(2)
+    for j, col in enumerate([col1, col2]):
+        if j < len(cols_to_plot):
+            with col:
+                st.plotly_chart(cols_to_plot[j], use_container_width=True)
 
 # Additional Data Table
 st.write("### Raw Data")
@@ -87,3 +106,8 @@ for currency in selected_currencies:
 
 all_data = all_data[::-1]  # Reverse the order of the table
 st.dataframe(all_data)
+
+# Correlation Table
+st.write("### Correlation Table")
+correlation_data = all_data.corr()
+st.dataframe(correlation_data)
