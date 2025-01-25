@@ -53,10 +53,10 @@ for currency in selected_currencies:
         if currency == "Dolar Financiero (GGAL)":
             adr_data = yf.download("GGAL", start=start_date, end=end_date, interval=timeframe)
             local_data = yf.download("GGAL.BA", start=start_date, end=end_date, interval=timeframe)
-            currency_data[currency] = adr_data['Close'] / local_data['Close']
+            currency_data[currency] = adr_data['Adj Close'] / local_data['Adj Close']
         else:
             data = yf.download(currency, start=start_date, end=end_date, interval=timeframe)
-            currency_data[currency] = data['Close']
+            currency_data[currency] = data['Adj Close']
     except Exception as e:
         st.error(f"Error loading data for {currency}: {e}")
         currency_data[currency] = None
